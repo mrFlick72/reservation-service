@@ -1,0 +1,10 @@
+r2dbc:
+  datasource:
+    host: localhost
+    database: reservation
+    username: root
+    password: root
+
+logging:
+  level:
+    root: debug
