@@ -3,7 +3,6 @@ package it.valeriovaudi.lab.reservationservice.adapter.r2dbc
 import io.r2dbc.client.R2dbc
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
-import io.r2dbc.spi.Result
 import it.valeriovaudi.lab.reservationservice.domain.model.Customer
 import junit.framework.Assert.assertNotNull
 import org.hamcrest.core.Is
