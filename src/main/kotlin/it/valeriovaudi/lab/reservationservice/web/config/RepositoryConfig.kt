@@ -3,27 +3,34 @@ package it.valeriovaudi.lab.reservationservice.web.config
 import io.r2dbc.client.R2dbc
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
-import it.valeriovaudi.lab.reservationservice.adapter.r2dbc.ReactiveCutomerRepository
+import io.r2dbc.spi.ConnectionFactory
+import it.valeriovaudi.lab.reservationservice.adapter.r2dbc.SpringDataJDBCReactiveCutomerRepository
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.r2dbc.function.DatabaseClient
+import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 
 @Configuration
 @EnableConfigurationProperties(value = [R2dbcCongfig::class])
 class RepositoryConfig {
 
     @Bean
-    fun reactiveJdbc(r2dbcCongfig: R2dbcCongfig) : R2dbc {
-        println(r2dbcCongfig)
-        return R2dbc(PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
-                .host(r2dbcCongfig.host)
-                .database(r2dbcCongfig.database)
-                .username(r2dbcCongfig.username)
-                .password(r2dbcCongfig.password)
-                .build()))
+    fun postgresqlConnectionFactory() =
+            PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
+                    .host("localhost")
+                    .database("reservation")
+                    .username("root")
+                    .password("root")
+                    .build())
 
-    }
 
     @Bean
-    fun reactiveCutomerRepository(reactiveJdbc: R2dbc) = ReactiveCutomerRepository(reactiveJdbc)
+    fun databaseClient(postgresqlConnectionFactory: ConnectionFactory) =
+            TransactionalDatabaseClient.create(postgresqlConnectionFactory)
+
+    @Bean
+    fun reactiveCutomerRepository(databaseClient: DatabaseClient) =
+            SpringDataJDBCReactiveCutomerRepository(databaseClient)
+
 }

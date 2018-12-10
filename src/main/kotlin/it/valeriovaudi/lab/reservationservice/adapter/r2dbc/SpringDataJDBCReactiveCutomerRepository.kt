@@ -1,12 +1,14 @@
 package it.valeriovaudi.lab.reservationservice.adapter.r2dbc
 
 import it.valeriovaudi.lab.reservationservice.domain.model.Customer
-import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
+import it.valeriovaudi.lab.reservationservice.domain.repository.CustomerRepository
+import org.springframework.data.r2dbc.function.DatabaseClient
 import reactor.core.publisher.Mono
+import java.util.*
 
-class SpringDataJDBCReactiveCutomerRepository(private val databaseClient: TransactionalDatabaseClient) {
+class SpringDataJDBCReactiveCutomerRepository(private val databaseClient: DatabaseClient) : CustomerRepository {
 
-    fun save(customer: Customer) =
+    override fun save(customer: Customer) =
             databaseClient.execute().sql("INSERT INTO customer (reservation_id, first_name, last_name) VALUES ($1, $2, $3)")
                     .bind("$1", customer.reservationId)
                     .bind("$2", customer.firstName)
@@ -15,7 +17,7 @@ class SpringDataJDBCReactiveCutomerRepository(private val databaseClient: Transa
                     .rowsUpdated()
                     .flatMap { Mono.just(customer) }
 
-    fun find(reservationId: String) =
+    override fun find(reservationId: String) =
             databaseClient.execute().sql("Select * FROM customer WHERE reservation_id = $1")
                     .bind("$1", reservationId)
                     .exchange()

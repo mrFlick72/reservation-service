@@ -1,13 +1,12 @@
 package it.valeriovaudi.lab.reservationservice
 
 import it.valeriovaudi.lab.reservationservice.domain.model.Customer
-import it.valeriovaudi.lab.reservationservice.domain.repository.CutomerRepository
+import it.valeriovaudi.lab.reservationservice.domain.repository.CustomerRepository
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.stereotype.Component
-import reactor.core.publisher.toFlux
 import reactor.core.publisher.toMono
 import java.util.*
 
@@ -19,7 +18,7 @@ fun main(args: Array<String>) {
 }
 
 @Component
-class Init(private val customerRepositoy: CutomerRepository) : ApplicationRunner {
+class Init(private val customerRepositoy: CustomerRepository) : ApplicationRunner {
 
     override fun run(args: ApplicationArguments?) {
         println("insert")
