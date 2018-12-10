@@ -7,6 +7,7 @@ import it.valeriovaudi.lab.reservationservice.domain.model.Customer
 import junit.framework.Assert.assertNotNull
 import org.hamcrest.core.Is
 import org.junit.Assert
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
@@ -58,7 +59,6 @@ class SpringDataJDBCReactiveCustomerRepositoryTest {
         } catch (e: Exception) {
         }
 
-
         Assert.assertTrue(findOneBy(firstCustomer.reservationId)!!.size == 0)
         Assert.assertTrue(findOneBy(secondCustomer.reservationId)!!.size == 0)
         Assert.assertTrue(findOneBy(thirdCustomer.reservationId)!!.size == 0)
@@ -77,7 +77,6 @@ class SpringDataJDBCReactiveCustomerRepositoryTest {
                     .then(reactiveCutomerRepository.save(thirdCustomer))
                     .then()
         }.toMono().block()
-
 
         Assert.assertTrue(findOneBy(firstCustomer.reservationId)!!.size == 1)
         Assert.assertTrue(findOneBy(secondCustomer.reservationId)!!.size == 1)
@@ -102,6 +101,14 @@ class SpringDataJDBCReactiveCustomerRepositoryTest {
         println(customer)
         assertNotNull(customer)
         Assert.assertThat(customer, Is.`is`(firstCustomer))
+    }
+
+    @Test
+    fun `retrieve a no existing customer`() {
+        val firstCustomer = newCustomer(UUID.randomUUID().toString(), prefix = "New", suffix = "1")
+        val customer = reactiveCutomerRepository.find(firstCustomer.reservationId).block()
+        println(customer)
+        assertNull(customer)
     }
 
     fun newCustomer(id: String, prefix: String = "", suffix: String = "") = Customer(id, "$prefix Valerio $suffix", "Vaudi")
