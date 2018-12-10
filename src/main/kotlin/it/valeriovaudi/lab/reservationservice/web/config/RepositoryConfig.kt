@@ -1,6 +1,5 @@
 package it.valeriovaudi.lab.reservationservice.web.config
 
-import io.r2dbc.client.R2dbc
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
 import io.r2dbc.spi.ConnectionFactory

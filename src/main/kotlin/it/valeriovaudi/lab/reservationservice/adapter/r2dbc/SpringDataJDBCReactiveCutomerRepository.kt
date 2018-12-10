@@ -4,7 +4,6 @@ import it.valeriovaudi.lab.reservationservice.domain.model.Customer
 import it.valeriovaudi.lab.reservationservice.domain.repository.CustomerRepository
 import org.springframework.data.r2dbc.function.DatabaseClient
 import reactor.core.publisher.Mono
-import java.util.*
 
 class SpringDataJDBCReactiveCutomerRepository(private val databaseClient: DatabaseClient) : CustomerRepository {
 

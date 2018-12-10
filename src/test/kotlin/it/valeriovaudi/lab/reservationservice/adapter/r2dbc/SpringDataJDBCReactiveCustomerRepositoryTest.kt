@@ -8,12 +8,10 @@ import junit.framework.Assert.assertNotNull
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Before
-
 import org.junit.Test
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
-import java.lang.RuntimeException
 import java.util.*
 
 class SpringDataJDBCReactiveCustomerRepositoryTest {
