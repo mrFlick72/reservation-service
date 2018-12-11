@@ -13,13 +13,14 @@ import org.junit.Test
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
+import java.time.Duration
 import java.util.*
 
 class SpringDataJDBCReactiveCustomerRepositoryTest {
 
     lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory;
     lateinit var databaseClient: TransactionalDatabaseClient;
-    lateinit var reactiveCutomerRepository: SpringDataJDBCReactiveCutomerRepository;
+    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository;
     val r2dbc = R2dbc(PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
             .host("localhost")
             .database("reservation")
@@ -38,7 +39,7 @@ class SpringDataJDBCReactiveCustomerRepositoryTest {
 
 
         databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
-        reactiveCutomerRepository = SpringDataJDBCReactiveCutomerRepository(databaseClient)
+        reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
     }
 
     @Test
@@ -55,7 +56,7 @@ class SpringDataJDBCReactiveCustomerRepositoryTest {
                         .then(Mono.error<RuntimeException>({ RuntimeException() }))
 
                         .then()
-            }.toMono().block()
+            }.toMono().block(Duration.ofMinutes(1))
         } catch (e: Exception) {
         }
 
@@ -76,7 +77,7 @@ class SpringDataJDBCReactiveCustomerRepositoryTest {
                     .then(reactiveCutomerRepository.save(secondCustomer))
                     .then(reactiveCutomerRepository.save(thirdCustomer))
                     .then()
-        }.toMono().block()
+        }.toMono().block(Duration.ofMinutes(1))
 
         Assert.assertTrue(findOneBy(firstCustomer.reservationId)!!.size == 1)
         Assert.assertTrue(findOneBy(secondCustomer.reservationId)!!.size == 1)
@@ -95,7 +96,7 @@ class SpringDataJDBCReactiveCustomerRepositoryTest {
                     .then(reactiveCutomerRepository.save(secondCustomer))
                     .then(reactiveCutomerRepository.save(thirdCustomer))
                     .then()
-        }.toMono().block()
+        }.toMono().block(Duration.ofMinutes(1))
 
         val customer = reactiveCutomerRepository.find(firstCustomer.reservationId).block()
         println(customer)
@@ -122,5 +123,5 @@ class SpringDataJDBCReactiveCustomerRepositoryTest {
                                 t.get("last_name", String::class.java)!!)
                     }
                 }
-    }.collectList().block()
+    }.collectList().block(Duration.ofMinutes(1))
 }

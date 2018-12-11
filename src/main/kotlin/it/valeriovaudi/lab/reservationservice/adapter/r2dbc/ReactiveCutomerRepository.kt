@@ -3,9 +3,10 @@ package it.valeriovaudi.lab.reservationservice.adapter.r2dbc
 import it.valeriovaudi.lab.reservationservice.domain.model.Customer
 import it.valeriovaudi.lab.reservationservice.domain.repository.CustomerRepository
 import org.springframework.data.r2dbc.function.DatabaseClient
+import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 import reactor.core.publisher.Mono
 
-class SpringDataJDBCReactiveCutomerRepository(private val databaseClient: DatabaseClient) : CustomerRepository {
+class ReactiveCutomerRepository(private val databaseClient: TransactionalDatabaseClient) : CustomerRepository {
 
     override fun save(customer: Customer) =
             databaseClient.execute().sql("INSERT INTO customer (reservation_id, first_name, last_name) VALUES ($1, $2, $3)")
