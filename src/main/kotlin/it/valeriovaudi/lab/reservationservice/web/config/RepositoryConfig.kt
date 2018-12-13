@@ -14,12 +14,12 @@ import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 class RepositoryConfig {
 
     @Bean
-    fun postgresqlConnectionFactory() =
+    fun postgresqlConnectionFactory(r2dbcCongfig: R2dbcCongfig) =
             PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
-                    .host("localhost")
-                    .database("reservation")
-                    .username("root")
-                    .password("root")
+                    .host(r2dbcCongfig.host)
+                    .database(r2dbcCongfig.host)
+                    .username(r2dbcCongfig.username)
+                    .password(r2dbcCongfig.password)
                     .build())
 
 
