@@ -7,12 +7,27 @@ import org.reactivestreams.Publisher
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
+import java.time.LocalDateTime
 
 class ReactiveReservationRepository(private val databaseClient: TransactionalDatabaseClient,
                                     private val customerRepository: CustomerRepository) : ReservationRepository {
-    override fun findOne(reservationId: String): Publisher<Reservation> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+
+    override fun findOne(reservationId: String): Publisher<Reservation> =
+            databaseClient.inTransaction {
+                customerRepository.find(reservationId).toMono()
+                        .flatMap { customer ->
+                            it.execute().sql("SELECT * FROM reservation WHERE reservation_id=$1")
+                                    .bind("$1", reservationId)
+                                    .exchange()
+                                    .flatMap { sqlRowMap ->
+                                        sqlRowMap.extract { t, u ->
+                                            Reservation(t.get("reservation_id", String::class.java)!!,
+                                                    t.get("restaurant_name", String::class.java)!!,
+                                                    customer, t.get("date", LocalDateTime::class.java)!!)
+                                        }.one()
+                                    }
+                        }
+            }
 
     override fun save(reservation: Reservation): Publisher<Reservation> =
             databaseClient.inTransaction {

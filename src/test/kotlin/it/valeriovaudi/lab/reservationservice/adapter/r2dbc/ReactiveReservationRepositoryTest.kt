@@ -60,6 +60,25 @@ class ReactiveReservationRepositoryTest {
     }
 
 
+    @Test
+    fun `find a new reservation by reservation id`() {
+        val reservationId = UUID.randomUUID().toString()
+        val reservationDate = LocalDateTime.of(2018, 1, 1, 22, 0)
+        val customer = Customer(reservationId, "A_FIRST_NAME", "A_LAST_NAME")
+        val restaurantName = "A_RESTAURANT_NAME"
+
+        val expected = Reservation(reservationId, restaurantName, customer, reservationDate)
+        reactiveReservationRepository.save(Reservation(reservationId, restaurantName, customer, reservationDate))
+                .toMono().block(Duration.ofMinutes(1))
+
+        val actual = reactiveReservationRepository.findOne(reservationId)
+                .toMono().block(Duration.ofMinutes(1))
+
+        println(actual)
+        Assert.assertThat(actual, Is.`is`(expected))
+
+    }
+
     fun findOneBy(reservationId: String) = r2dbc.inTransaction { handle ->
         handle.select("SELECT * FROM customer WHERE reservation_id=$1", reservationId)
                 .mapResult { sqlRowMap ->
