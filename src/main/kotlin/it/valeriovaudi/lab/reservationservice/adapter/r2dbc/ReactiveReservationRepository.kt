@@ -7,6 +7,7 @@ import org.reactivestreams.Publisher
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
+import sun.management.VMOptionCompositeData
 import java.time.LocalDateTime
 
 class ReactiveReservationRepository(private val databaseClient: TransactionalDatabaseClient,
@@ -40,8 +41,13 @@ class ReactiveReservationRepository(private val databaseClient: TransactionalDat
             }.then(Mono.just(reservation))
 
 
-    override fun delete(reservation: Reservation): Publisher<Reservation> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun delete(reservationId: String): Publisher<Void> =
+            databaseClient.inTransaction {
+                customerRepository.delete(reservationId).toMono()
+                        .then(it.execute().sql("DELETE FROM reservation WHERE reservation_id = $1")
+                                .bind("$1", reservationId)
+                                .fetch().rowsUpdated())
+            }.then(Mono.empty())
+
 
 }
