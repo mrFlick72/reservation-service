@@ -7,4 +7,6 @@ interface CustomerRepository {
     fun save(customer: Customer): Publisher<Customer>
 
     fun find(reservationId: String) : Publisher<Customer>
+
+    fun delete(reservationId: String) : Publisher<Void>
 }

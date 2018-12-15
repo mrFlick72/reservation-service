@@ -16,7 +16,7 @@ import reactor.core.publisher.toMono
 import java.time.Duration
 import java.util.*
 
-class SpringDataJDBCReactiveCustomerRepositoryTest {
+class ReactiveCutomerRepositoryTest {
 
     lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory;
     lateinit var databaseClient: TransactionalDatabaseClient;
@@ -107,6 +107,19 @@ class SpringDataJDBCReactiveCustomerRepositoryTest {
     @Test
     fun `retrieve a no existing customer`() {
         val firstCustomer = newCustomer(UUID.randomUUID().toString(), prefix = "New", suffix = "1")
+        val customer = reactiveCutomerRepository.find(firstCustomer.reservationId).block()
+        println(customer)
+        assertNull(customer)
+    }
+
+    @Test
+    fun `delete a customer`() {
+        val firstCustomer = newCustomer(UUID.randomUUID().toString(), prefix = "save", suffix = "1")
+
+        reactiveCutomerRepository.save(firstCustomer).toMono().block(Duration.ofMinutes(1))
+
+        reactiveCutomerRepository.delete(firstCustomer.reservationId).toMono().block(Duration.ofMinutes(1))
+
         val customer = reactiveCutomerRepository.find(firstCustomer.reservationId).block()
         println(customer)
         assertNull(customer)

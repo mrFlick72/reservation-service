@@ -2,7 +2,7 @@ package it.valeriovaudi.lab.reservationservice.adapter.r2dbc
 
 import it.valeriovaudi.lab.reservationservice.domain.model.Customer
 import it.valeriovaudi.lab.reservationservice.domain.repository.CustomerRepository
-import org.springframework.data.r2dbc.function.DatabaseClient
+import org.reactivestreams.Publisher
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 import reactor.core.publisher.Mono
 
@@ -28,4 +28,12 @@ class ReactiveCutomerRepository(private val databaseClient: TransactionalDatabas
                                     t.get("last_name", String::class.java)!!)
                         }.one()
                     }
+
+    override fun delete(reservationId: String): Publisher<Void> =
+            databaseClient.execute().sql("DELETE FROM customer WHERE reservation_id = $1")
+                    .bind("$1", reservationId)
+                    .fetch()
+                    .rowsUpdated()
+                    .flatMap { Mono.empty<Void>() }
+
 }
