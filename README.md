@@ -106,3 +106,88 @@ class ReservationRoutesConfig {
 }
           
 ```
+## Testing
+The test class in this case involve a local database Postgress in this case.
+ I do not provide H2 because I think that especially with native query because I think that in this case is very important to use the real database engine 
+ that we will use in production of course tanks projects like TestContainers we can start a postgress database for our test and test our code against a real database. 
+ The sample code appear like below: 
+```kotlin
+class ReactiveCutomerRepositoryTest {
+
+    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
+    lateinit var databaseClient: TransactionalDatabaseClient
+    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository
+    lateinit var r2dbc: R2dbc
+
+    @Before
+    fun setUp() {
+        postgresqlConnectionFactory = PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
+                .host("localhost")
+                .database("reservation")
+                .username("root")
+                .password("root")
+                .build())
+
+        r2dbc = R2dbc(postgresqlConnectionFactory)
+        databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
+        reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
+    }
+
+    @Test
+    fun `save a customer not allowed tx rolbaked`() {
+        val firstReservationId = UUID.randomUUID().toString()
+        val secondReservationId = UUID.randomUUID().toString()
+        val thirdReservationId = UUID.randomUUID().toString()
+
+        val firstCustomer = newCustomer(prefix = "rolback", suffix = "1")
+        val secondCustomer = newCustomer(prefix = "rolback", suffix = "2")
+        val thirdCustomer = newCustomer(prefix = "rolback", suffix = "3")
+        try {
+            databaseClient.inTransaction {
+                reactiveCutomerRepository.save(firstReservationId, firstCustomer)
+                        .then(reactiveCutomerRepository.save(secondReservationId, secondCustomer))
+                        .then(reactiveCutomerRepository.save(thirdReservationId, thirdCustomer))
+
+                        .then(Mono.error<RuntimeException>({ RuntimeException() }))
+
+                        .then()
+            }.toMono().block(Duration.ofMinutes(1))
+        } catch (e: Exception) {
+        }
+
+        Assert.assertTrue(findOneBy(firstReservationId)!!.size == 0)
+        Assert.assertTrue(findOneBy(secondReservationId)!!.size == 0)
+        Assert.assertTrue(findOneBy(thirdReservationId)!!.size == 0)
+    }
+
+    @Test
+    fun `save a customer`() {
+
+        val firstReservationId = UUID.randomUUID().toString()
+        val secondReservationId = UUID.randomUUID().toString()
+        val thirdReservationId = UUID.randomUUID().toString()
+
+
+        val firstCustomer = newCustomer(prefix = "save", suffix = "1")
+        val secondCustomer = newCustomer(prefix = "save", suffix = "2")
+        val thirdCustomer = newCustomer(prefix = "save", suffix = "3")
+
+
+        databaseClient.inTransaction {
+            reactiveCutomerRepository.save(firstReservationId, firstCustomer)
+                    .then(reactiveCutomerRepository.save(secondReservationId, secondCustomer))
+                    .then(reactiveCutomerRepository.save(thirdReservationId, thirdCustomer))
+                    .then()
+        }.toMono().block(Duration.ofMinutes(1))
+
+        Assert.assertTrue(findOneBy(firstReservationId)!!.size == 1)
+        Assert.assertTrue(findOneBy(secondReservationId)!!.size == 1)
+        Assert.assertTrue(findOneBy(thirdReservationId)!!.size == 1)
+    }
+
+....
+}
+          
+```
+
+
