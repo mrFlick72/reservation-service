@@ -19,8 +19,56 @@ Some framework like RXJava2, Reactror, Akka Stream and many other embrace reacti
 compose software pieces.
 
 ## The evil: JDBC
-Unfortunally JDBC do not embrace the no blocking and reactive programming paradigm. This is a very big problem for use relation database in a reactive noblocking pipeline.
+Unfortunately JDBC do not embrace the no blocking and reactive programming paradigm. This is a very big problem for use relation database in a reactive noblocking pipeline.
 Some projects like rxjava-jdbc, ADBA, R2DBC an lo on attempt to solve the problem of the bloking nature of JDBC. In this sample I how use show R2DBC in a full reactive no blocking io pipeline 
 starting from the web layer(Spring WebFlux) to database.
 
+## The stack of the sample
 
+In this project I have used Spring boot 2.1.1 with Kotlin as programming language, Spring WebFlux on the web layer and R2DBC on persistence layer, Postgres as database in a Hexagonal architecture.
+In particular for the persistence I have experimented the newest SpringDataJDBC for R2DBC a very elegant api that especially for the transactional management provides a very elegant and clean vay.
+
+```kotlin
+@Configuration
+@EnableConfigurationProperties(value = [R2dbcCongfig::class])
+class RepositoryConfig {
+
+ ...
+    @Bean
+    fun databaseClient(postgresqlConnectionFactory: ConnectionFactory) =
+            TransactionalDatabaseClient.create(postgresqlConnectionFactory)
+
+}
+```
+
+```kotlin
+
+}
+  
+class ReactiveReservationRepository(private val databaseClient: TransactionalDatabaseClient,
+                                    private val customerRepository: CustomerRepository) : ReservationRepository {
+
+    override fun findOne(reservationId: String): Publisher<Reservation> =
+            databaseClient.inTransaction {
+                customerRepository.find(reservationId).toMono()
+                        .flatMap { customer ->
+                            it.execute().sql("SELECT * FROM reservation WHERE reservation_id=$1")
+                                    .bind("$1", reservationId)
+                                    .exchange()
+                                    .flatMap { sqlRowMap ->
+                                        sqlRowMap.extract { t, u ->
+                                            Reservation(t.get("reservation_id", String::class.java)!!,
+                                                    t.get("restaurant_name", String::class.java)!!,
+                                                    customer, t.get("date", LocalDateTime::class.java)!!)
+                                        }.one()
+                                    }
+                        }
+            }
+
+....
+}
+          
+```
+
+note in this example that tanks to the databaseClient of type TransactionalDatabaseClient and SpringDataJDBC we can span the transaction 
+across more repository without annotation in a more explicit way .
