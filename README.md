@@ -26,8 +26,10 @@ starting from the web layer(Spring WebFlux) to database.
 ## The stack of the sample
 
 In this project I have used Spring boot 2.1.1 with Kotlin as programming language, Spring WebFlux on the web layer and R2DBC on persistence layer, Postgres as database in a Hexagonal architecture.
-In particular for the persistence I have experimented the newest SpringDataJDBC for R2DBC a very elegant api that especially for the transactional management provides a very elegant and clean vay.
-
+In particular for the persistence I have experimented the newest SpringDataJDBC for R2DBC a very elegant api that especially for the transactional management provides a very elegant and clean vay. 
+Note in this example that tanks to the databaseClient of type TransactionalDatabaseClient and SpringDataJDBC we can span the transaction 
+across more repository without annotation in a more explicit way.
+#### configuration
 ```kotlin
 @Configuration
 @EnableConfigurationProperties(value = [R2dbcCongfig::class])
@@ -40,7 +42,7 @@ class RepositoryConfig {
 
 }
 ```
-
+#### sample code
 ```kotlin
 
 }
@@ -69,6 +71,38 @@ class ReactiveReservationRepository(private val databaseClient: TransactionalDat
 }
           
 ```
+## The web layer
 
-note in this example that tanks to the databaseClient of type TransactionalDatabaseClient and SpringDataJDBC we can span the transaction 
-across more repository without annotation in a more explicit way .
+For the web layer we have used Spring WebFlux and since that even the database layer now is a fully reactive programming with no blocking io model, we have 
+the assurance that all the pipeline coherent and integrated like below simple and elegant!!!:
+
+```kotlin
+@Configuration
+class ReservationRoutesConfig {
+
+    @Bean
+    fun reservationRoutes(@Value("\${baseServer:http://localhost:8080}") baseServer: String,
+                          reservationRepository: ReservationRepository) =
+            router {
+                POST("/reservation") {
+                    it.bodyToMono(ReservationRepresentation::class.java)
+                            .flatMap { Mono.just(ReservationRepresentation.toDomain(reservationRepresentation = it)) }
+                            .flatMap { reservationRepository.save(it).toMono() }
+                            .flatMap { ServerResponse.created(URI("$baseServer/reservation/${it.reservationId}")).build() }
+
+                }
+
+                GET("/reservation/{reservationId}") {
+                    reservationRepository.findOne(it.pathVariable("reservationId")).toMono()
+                            .flatMap { Mono.just(ReservationRepresentation.toRepresentation(it)) }
+                            .flatMap { ok().body(BodyInserters.fromObject(it)) }
+                }
+
+                DELETE("/reservation/{reservationId}") {
+                    reservationRepository.delete(it.pathVariable("reservationId")).toMono()
+                            .then(noContent().build())
+                }
+            }
+}
+          
+```
