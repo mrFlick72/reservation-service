@@ -25,14 +25,14 @@ starting from the web layer(Spring WebFlux) to database.
 
 ## The stack of the sample
 
-In this project I have used Spring boot 2.1.1 with Kotlin as programming language, Spring WebFlux on the web layer and R2DBC on persistence layer, Postgres as database in a Hexagonal architecture.
-In particular for the persistence I have experimented the newest SpringDataJDBC for R2DBC a very elegant api that especially for the transactional management provides a very elegant and clean vay. 
-Note in this example that tanks to the databaseClient of type TransactionalDatabaseClient and SpringDataJDBC we can span the transaction 
+In this project I have used Spring Boot 2.1.1 with Kotlin as programming language, Spring WebFlux on the web layer and R2DBC on persistence layer, Postgres as database in a Hexagonal architecture.
+In particular for the persistence I have experimented the newest Spring Data R2DBC a very elegant api that especially for the transactional management provides a very elegant and clean vay. 
+Note in this example that tanks to the databaseClient of type TransactionalDatabaseClient and Spring Data R2DBC we can span the transaction 
 across more repository without annotation in a more explicit way.
 #### configuration
 ```kotlin
 @Configuration
-@EnableConfigurationProperties(value = [R2dbcCongfig::class])
+@EnableConfigurationProperties(value = [R2DBCCongfig::class])
 class RepositoryConfig {
 
  ...
@@ -111,13 +111,14 @@ The test class in this case involve a local database Postgress in this case.
  I do not provide H2 because I think that especially with native query because I think that in this case is very important to use the real database engine 
  that we will use in production of course tanks projects like TestContainers we can start a postgress database for our test and test our code against a real database. 
  The sample code appear like below: 
+ 
 ```kotlin
 class ReactiveCutomerRepositoryTest {
 
     lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
     lateinit var databaseClient: TransactionalDatabaseClient
     lateinit var reactiveCutomerRepository: ReactiveCutomerRepository
-    lateinit var r2dbc: R2dbc
+    lateinit var R2DBC: R2DBC
 
     @Before
     fun setUp() {
@@ -128,7 +129,7 @@ class ReactiveCutomerRepositoryTest {
                 .password("root")
                 .build())
 
-        r2dbc = R2dbc(postgresqlConnectionFactory)
+        R2DBC = R2DBC(postgresqlConnectionFactory)
         databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
         reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
     }
@@ -198,7 +199,7 @@ not all application can benefits of this paradigm and the usage have to be under
 I disagree. I think that the correct load use case has the correct programming model have a reactive pipeline that remember a more functional programming 
 style is cool but in some use case a little bit a over kill, the true way to do something unfortunately do not exist and it depends from many factors like:
 team knowledge, load use case, scaling motivation and so on. In any case if the load is excpeted to increase and the resources usage is an important matter 
-webflux, reactor and r2dbc can help us to build a fully reactive and no blocking io pipeline.
+webflux, reactor and R2DBC can help us to build a fully reactive and no blocking io pipeline.
 
-Only bad notice here is about the maturity of r2dbc. r2dbc unfortunatelly curentely is not release and spring data jdbc is in SNAPSHOT version but I hope that tose rpojects can 
+Only bad notice here is about the maturity of R2DBC. R2DBC unfortunately currentely is not release and Spring Data R2DBC is in SNAPSHOT version but I hope that these projects can 
 reach the maturity soon.
