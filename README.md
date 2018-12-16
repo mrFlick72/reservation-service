@@ -191,3 +191,14 @@ class ReactiveCutomerRepositoryTest {
 ```
 
 
+## Conclusion
+
+Use reactive programming with no blocking io can help our application to scale when the load is very high, of course 
+not all application can benefits of this paradigm and the usage have to be understood, even if in many books we can read that this paradigm is more simple 
+I disagree. I think that the correct load use case has the correct programming model have a reactive pipeline that remember a more functional programming 
+style is cool but in some use case a little bit a over kill, the true way to do something unfortunately do not exist and it depends from many factors like:
+team knowledge, load use case, scaling motivation and so on. In any case if the load is excpeted to increase and the resources usage is an important matter 
+webflux, reactor and r2dbc can help us to build a fully reactive and no blocking io pipeline.
+
+Only bad notice here is about the maturity of r2dbc. r2dbc unfortunatelly curentely is not release and spring data jdbc is in SNAPSHOT version but I hope that tose rpojects can 
+reach the maturity soon.
