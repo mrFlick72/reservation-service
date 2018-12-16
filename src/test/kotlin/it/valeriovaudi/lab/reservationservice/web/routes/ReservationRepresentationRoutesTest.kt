@@ -32,13 +32,18 @@ class ReservationRepresentationRoutesTest {
     @Autowired
     private lateinit var reactiveReservationRepository: ReactiveReservationRepository
 
+    private val A_RESTAURANT_NAME = "A_RESTAURANT_NAME"
+    private val FIRST_NAME = "FIRST_NAME"
+    private val LAST_NAME = "LAST_NAME"
+    private val A_DATE = LocalDateTime.of(2018, 1, 1, 10, 10)
+
     @Test
     fun `book a new reservation`() {
         val location = this.webClient.post()
                 .uri("/reservation")
-                .body(BodyInserters.fromObject(ReservationRepresentation(restaurantName = "A_RESTAURANT_NAME",
-                        customer = CustomerRepresentation("FIRST_NAME", "LAST_NAME"),
-                        date = LocalDateTime.of(2018, 1, 1, 10, 10))))
+                .body(BodyInserters.fromObject(ReservationRepresentation(restaurantName = A_RESTAURANT_NAME,
+                        customer = CustomerRepresentation(FIRST_NAME, LAST_NAME),
+                        date = A_DATE)))
                 .exchange()
                 .expectStatus().isCreated
                 .returnResult<Any>().responseHeaders.location
@@ -50,13 +55,13 @@ class ReservationRepresentationRoutesTest {
     @Test
     fun `find a new reservation`() {
         val reservationId = UUID.randomUUID().toString()
-        reactiveReservationRepository.save(Reservation(reservationId, "A_RESTAURANT_NAME",
-                Customer(reservationId, "FIRST_NAME", "LAST_NAME"),
-                LocalDateTime.of(2018, 1, 1, 10, 10)))
+        reactiveReservationRepository.save(Reservation(reservationId, A_RESTAURANT_NAME,
+                Customer(reservationId, FIRST_NAME, LAST_NAME),
+                A_DATE))
                 .toMono().block(Duration.ofMinutes(1))
-        val expected = ReservationRepresentation(restaurantName = "A_RESTAURANT_NAME",
-                customer = CustomerRepresentation("FIRST_NAME", "LAST_NAME"),
-                date = LocalDateTime.of(2018, 1, 1, 10, 10))
+        val expected = ReservationRepresentation(restaurantName = A_RESTAURANT_NAME,
+                customer = CustomerRepresentation(FIRST_NAME, LAST_NAME),
+                date = A_DATE)
 
         val actual = this.webClient.get()
                 .uri("/reservation/$reservationId")
@@ -71,13 +76,13 @@ class ReservationRepresentationRoutesTest {
     @Test
     fun `delete a reservation`() {
         val reservationId = UUID.randomUUID().toString()
-        reactiveReservationRepository.save(Reservation(reservationId, "A_RESTAURANT_NAME",
-                Customer(reservationId, "FIRST_NAME", "LAST_NAME"),
-                LocalDateTime.of(2018, 1, 1, 10, 10)))
+        reactiveReservationRepository.save(Reservation(reservationId, A_RESTAURANT_NAME,
+                Customer(reservationId, FIRST_NAME, LAST_NAME),
+                A_DATE))
                 .toMono().block(Duration.ofMinutes(1))
-        val expected = ReservationRepresentation(restaurantName = "A_RESTAURANT_NAME",
-                customer = CustomerRepresentation("FIRST_NAME", "LAST_NAME"),
-                date = LocalDateTime.of(2018, 1, 1, 10, 10))
+        val expected = ReservationRepresentation(restaurantName = A_RESTAURANT_NAME,
+                customer = CustomerRepresentation(FIRST_NAME, LAST_NAME),
+                date = A_DATE)
 
         val actual = this.webClient.get()
                 .uri("/reservation/$reservationId")
