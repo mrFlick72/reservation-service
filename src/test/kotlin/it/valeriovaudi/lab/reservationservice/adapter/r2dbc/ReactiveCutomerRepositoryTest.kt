@@ -120,7 +120,7 @@ class ReactiveCutomerRepositoryTest {
         assertNull(customer)
     }
 
-    fun newCustomer(id: String, prefix: String = "", suffix: String = "") = Customer(id, "$prefix Valerio $suffix", "Vaudi")
+    fun newCustomer(id: String, prefix: String = "", suffix: String = "") = Customer(id, "$prefix A_FIRST_NAME $suffix", "A_LAST_NAME")
 
     fun findOneBy(reservationId: String): MutableList<Customer>? = r2dbc.inTransaction { handle ->
         handle.select("SELECT * FROM customer WHERE reservation_id=$1", reservationId)
