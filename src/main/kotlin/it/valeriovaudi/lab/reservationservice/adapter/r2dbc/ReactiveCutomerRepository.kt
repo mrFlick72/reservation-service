@@ -8,9 +8,9 @@ import reactor.core.publisher.Mono
 
 class ReactiveCutomerRepository(private val databaseClient: TransactionalDatabaseClient) : CustomerRepository {
 
-    override fun save(customer: Customer) =
+    override fun save(reservationId: String, customer: Customer) =
             databaseClient.execute().sql("INSERT INTO customer (reservation_id, first_name, last_name) VALUES ($1, $2, $3)")
-                    .bind("$1", customer.reservationId)
+                    .bind("$1", reservationId)
                     .bind("$2", customer.firstName)
                     .bind("$3", customer.lastName)
                     .fetch()
@@ -23,8 +23,7 @@ class ReactiveCutomerRepository(private val databaseClient: TransactionalDatabas
                     .exchange()
                     .flatMap { sqlRowMap ->
                         sqlRowMap.extract { t, u ->
-                            Customer(t.get("reservation_id", String::class.java)!!,
-                                    t.get("first_name", String::class.java)!!,
+                            Customer(t.get("first_name", String::class.java)!!,
                                     t.get("last_name", String::class.java)!!)
                         }.one()
                     }

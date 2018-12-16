@@ -10,7 +10,7 @@ data class ReservationRepresentation(var restaurantName: String, var customer: C
         fun toDomain(reservationId: String = UUID.randomUUID().toString(),
                      reservationRepresentation: ReservationRepresentation): Reservation =
                 Reservation(reservationId, reservationRepresentation.restaurantName,
-                        Customer(reservationId, reservationRepresentation.customer.firstName, reservationRepresentation.customer.lastName),
+                        Customer(reservationRepresentation.customer.firstName, reservationRepresentation.customer.lastName),
                         reservationRepresentation.date)
 
         fun toRepresentation(reservation: Reservation): ReservationRepresentation =

@@ -56,7 +56,7 @@ class ReservationRepresentationRoutesTest {
     fun `find a new reservation`() {
         val reservationId = UUID.randomUUID().toString()
         reactiveReservationRepository.save(Reservation(reservationId, A_RESTAURANT_NAME,
-                Customer(reservationId, FIRST_NAME, LAST_NAME),
+                Customer(FIRST_NAME, LAST_NAME),
                 A_DATE))
                 .toMono().block(Duration.ofMinutes(1))
         val expected = ReservationRepresentation(restaurantName = A_RESTAURANT_NAME,
@@ -77,7 +77,7 @@ class ReservationRepresentationRoutesTest {
     fun `delete a reservation`() {
         val reservationId = UUID.randomUUID().toString()
         reactiveReservationRepository.save(Reservation(reservationId, A_RESTAURANT_NAME,
-                Customer(reservationId, FIRST_NAME, LAST_NAME),
+                Customer(FIRST_NAME, LAST_NAME),
                 A_DATE))
                 .toMono().block(Duration.ofMinutes(1))
         val expected = ReservationRepresentation(restaurantName = A_RESTAURANT_NAME,

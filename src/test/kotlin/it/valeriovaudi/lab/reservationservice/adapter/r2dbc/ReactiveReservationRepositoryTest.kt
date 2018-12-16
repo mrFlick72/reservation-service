@@ -48,7 +48,7 @@ class ReactiveReservationRepositoryTest {
     fun `make a new reservation`() {
         val reservationId = UUID.randomUUID().toString()
         val reservationDate = A_DATE
-        val customer = Customer(reservationId, A_FIRST_NAME, A_LAST_NAME)
+        val customer = Customer(A_FIRST_NAME, A_LAST_NAME)
         val restaurantName = A_RESTAURANT_NAME
 
         val expected = Reservation(reservationId, restaurantName, customer, reservationDate)
@@ -64,7 +64,7 @@ class ReactiveReservationRepositoryTest {
     fun `find a new reservation by reservation id`() {
         val reservationId = UUID.randomUUID().toString()
         val reservationDate = A_DATE
-        val customer = Customer(reservationId, A_FIRST_NAME, A_LAST_NAME)
+        val customer = Customer(A_FIRST_NAME, A_LAST_NAME)
         val restaurantName = A_RESTAURANT_NAME
 
         val expected = Reservation(reservationId, restaurantName, customer, reservationDate)
@@ -83,7 +83,7 @@ class ReactiveReservationRepositoryTest {
     fun `delete a reservation`() {
         val reservationId = UUID.randomUUID().toString()
         val reservationDate = A_DATE
-        val customer = Customer(reservationId, A_FIRST_NAME, A_LAST_NAME)
+        val customer = Customer(A_FIRST_NAME, A_LAST_NAME)
         val restaurantName = A_RESTAURANT_NAME
 
         reactiveReservationRepository.save(Reservation(reservationId, restaurantName, customer, reservationDate))
@@ -105,8 +105,7 @@ class ReactiveReservationRepositoryTest {
         handle.select("SELECT * FROM customer WHERE reservation_id=$1", reservationId)
                 .mapResult { sqlRowMap ->
                     sqlRowMap.map { t, u ->
-                        Customer(t.get("reservation_id", String::class.java)!!,
-                                t.get("first_name", String::class.java)!!,
+                        Customer(t.get("first_name", String::class.java)!!,
                                 t.get("last_name", String::class.java)!!)
                     }
                 }

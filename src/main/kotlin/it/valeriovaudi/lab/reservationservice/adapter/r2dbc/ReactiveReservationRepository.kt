@@ -32,7 +32,7 @@ class ReactiveReservationRepository(private val databaseClient: TransactionalDat
 
     override fun save(reservation: Reservation): Publisher<Reservation> =
             databaseClient.inTransaction {
-                customerRepository.save(reservation.customer).toMono()
+                customerRepository.save(reservation.reservationId, reservation.customer).toMono()
                         .then(it.execute().sql("INSERT INTO reservation (reservation_id, restaurant_name, date) VALUES ($1, $2, $3)")
                                 .bind("$1", reservation.reservationId)
                                 .bind("$2", reservation.restaurantName)
@@ -48,6 +48,5 @@ class ReactiveReservationRepository(private val databaseClient: TransactionalDat
                                 .bind("$1", reservationId)
                                 .fetch().rowsUpdated())
             }.then(Mono.empty())
-
 
 }
