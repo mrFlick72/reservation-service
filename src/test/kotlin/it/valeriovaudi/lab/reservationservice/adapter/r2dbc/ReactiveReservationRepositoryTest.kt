@@ -17,6 +17,11 @@ import java.util.*
 
 class ReactiveReservationRepositoryTest {
 
+    private val A_DATE = LocalDateTime.of(2018, 1, 1, 22, 0)
+    private val A_RESTAURANT_NAME = "A_RESTAURANT_NAME"
+    private val A_FIRST_NAME = "A_FIRST_NAME"
+    private val A_LAST_NAME = "A_LAST_NAME"
+
     lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
     lateinit var databaseClient: TransactionalDatabaseClient
     lateinit var reactiveReservationRepository: ReactiveReservationRepository
@@ -25,26 +30,19 @@ class ReactiveReservationRepositoryTest {
 
     @Before
     fun setUp() {
-        val connectionConfiguration = PostgresqlConnectionConfiguration.builder()
+        postgresqlConnectionFactory = PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
                 .host("localhost")
                 .database("reservation")
                 .username("root")
                 .password("root")
-                .build()
-        postgresqlConnectionFactory = PostgresqlConnectionFactory(connectionConfiguration)
-
+                .build())
 
         databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
         reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
         reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCutomerRepository)
 
-        r2dbc = R2dbc(PostgresqlConnectionFactory(connectionConfiguration))
+        r2dbc = R2dbc(postgresqlConnectionFactory)
     }
-
-    private val A_DATE = LocalDateTime.of(2018, 1, 1, 22, 0)
-    private val A_RESTAURANT_NAME = "A_RESTAURANT_NAME"
-    private val A_FIRST_NAME = "A_FIRST_NAME"
-    private val A_LAST_NAME = "A_LAST_NAME"
 
     @Test
     fun `make a new reservation`() {

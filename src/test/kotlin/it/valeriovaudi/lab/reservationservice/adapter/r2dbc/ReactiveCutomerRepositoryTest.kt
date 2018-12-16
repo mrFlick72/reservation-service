@@ -18,15 +18,10 @@ import java.util.*
 
 class ReactiveCutomerRepositoryTest {
 
-    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory;
-    lateinit var databaseClient: TransactionalDatabaseClient;
-    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository;
-    val r2dbc = R2dbc(PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
-            .host("localhost")
-            .database("reservation")
-            .username("root")
-            .password("root")
-            .build()))
+    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
+    lateinit var databaseClient: TransactionalDatabaseClient
+    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository
+    lateinit var r2dbc: R2dbc
 
     @Before
     fun setUp() {
@@ -37,7 +32,7 @@ class ReactiveCutomerRepositoryTest {
                 .password("root")
                 .build())
 
-
+        r2dbc = R2dbc(postgresqlConnectionFactory)
         databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
         reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
     }
