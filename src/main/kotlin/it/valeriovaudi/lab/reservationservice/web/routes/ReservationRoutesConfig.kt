@@ -32,5 +32,10 @@ class ReservationRoutesConfig {
                             .flatMap { Mono.just(ReservationRepresentation.toRepresentation(it)) }
                             .flatMap { ok().body(BodyInserters.fromObject(it)) }
                 }
+
+                DELETE("/reservation/{reservationId}") {
+                    reservationRepository.delete(it.pathVariable("reservationId")).toMono()
+                            .then(noContent().build())
+                }
             }
 }

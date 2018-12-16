@@ -6,6 +6,7 @@ import it.valeriovaudi.lab.reservationservice.domain.model.Reservation
 import it.valeriovaudi.lab.reservationservice.extractId
 import it.valeriovaudi.lab.reservationservice.web.representation.CustomerRepresentation
 import it.valeriovaudi.lab.reservationservice.web.representation.ReservationRepresentation
+import junit.framework.Assert.fail
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Test
@@ -65,5 +66,35 @@ class ReservationRepresentationRoutesTest {
                 .returnResult().responseBody
 
         Assert.assertThat(expected, Is.`is`(actual))
+    }
+
+    @Test
+    fun `delete a reservation`() {
+        val reservationId = UUID.randomUUID().toString()
+        reactiveReservationRepository.save(Reservation(reservationId, "A_RESTAURANT_NAME",
+                Customer(reservationId, "FIRST_NAME", "LAST_NAME"),
+                LocalDateTime.of(2018, 1, 1, 10, 10)))
+                .toMono().block(Duration.ofMinutes(1))
+        val expected = ReservationRepresentation(restaurantName = "A_RESTAURANT_NAME",
+                customer = CustomerRepresentation("FIRST_NAME", "LAST_NAME"),
+                date = LocalDateTime.of(2018, 1, 1, 10, 10))
+
+        val actual = this.webClient.get()
+                .uri("/reservation/$reservationId")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody(ReservationRepresentation::class.java)
+                .returnResult().responseBody
+
+        Assert.assertThat(expected, Is.`is`(actual))
+
+        this.webClient.delete()
+                .uri("/reservation/$reservationId")
+                .exchange()
+                .expectStatus().isNoContent
+
+        reactiveReservationRepository.findOne(reservationId)
+                .toMono().blockOptional(Duration.ofMinutes(1))
+                .ifPresent { fail() }
     }
 }
