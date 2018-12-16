@@ -15,41 +15,43 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
-class ReactiveReservationRepresentationRepositoryTest {
+class ReactiveReservationRepositoryTest {
 
-    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory;
-    lateinit var databaseClient: TransactionalDatabaseClient;
-    lateinit var reactiveReservationRepository: ReactiveReservationRepository;
-    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository;
-
-    val r2dbc = R2dbc(PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
-            .host("localhost")
-            .database("reservation")
-            .username("root")
-            .password("root")
-            .build()))
+    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
+    lateinit var databaseClient: TransactionalDatabaseClient
+    lateinit var reactiveReservationRepository: ReactiveReservationRepository
+    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository
+    lateinit var r2dbc: R2dbc
 
     @Before
     fun setUp() {
-        postgresqlConnectionFactory = PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
+        val connectionConfiguration = PostgresqlConnectionConfiguration.builder()
                 .host("localhost")
                 .database("reservation")
                 .username("root")
                 .password("root")
-                .build())
+                .build()
+        postgresqlConnectionFactory = PostgresqlConnectionFactory(connectionConfiguration)
 
 
         databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
         reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
         reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCutomerRepository)
+
+        r2dbc = R2dbc(PostgresqlConnectionFactory(connectionConfiguration))
     }
+
+    private val A_DATE = LocalDateTime.of(2018, 1, 1, 22, 0)
+    private val A_RESTAURANT_NAME = "A_RESTAURANT_NAME"
+    private val A_FIRST_NAME = "A_FIRST_NAME"
+    private val A_LAST_NAME = "A_LAST_NAME"
 
     @Test
     fun `make a new reservation`() {
         val reservationId = UUID.randomUUID().toString()
-        val reservationDate = LocalDateTime.of(2018, 1, 1, 22, 0)
-        val customer = Customer(reservationId, "A_FIRST_NAME", "A_LAST_NAME")
-        val restaurantName = "A_RESTAURANT_NAME"
+        val reservationDate = A_DATE
+        val customer = Customer(reservationId, A_FIRST_NAME, A_LAST_NAME)
+        val restaurantName = A_RESTAURANT_NAME
 
         val expected = Reservation(reservationId, restaurantName, customer, reservationDate)
         reactiveReservationRepository.save(Reservation(reservationId, restaurantName, customer, reservationDate))
@@ -63,9 +65,9 @@ class ReactiveReservationRepresentationRepositoryTest {
     @Test
     fun `find a new reservation by reservation id`() {
         val reservationId = UUID.randomUUID().toString()
-        val reservationDate = LocalDateTime.of(2018, 1, 1, 22, 0)
-        val customer = Customer(reservationId, "A_FIRST_NAME", "A_LAST_NAME")
-        val restaurantName = "A_RESTAURANT_NAME"
+        val reservationDate = A_DATE
+        val customer = Customer(reservationId, A_FIRST_NAME, A_LAST_NAME)
+        val restaurantName = A_RESTAURANT_NAME
 
         val expected = Reservation(reservationId, restaurantName, customer, reservationDate)
         reactiveReservationRepository.save(Reservation(reservationId, restaurantName, customer, reservationDate))
@@ -82,9 +84,9 @@ class ReactiveReservationRepresentationRepositoryTest {
     @Test
     fun `delete a reservation`() {
         val reservationId = UUID.randomUUID().toString()
-        val reservationDate = LocalDateTime.of(2018, 1, 1, 22, 0)
-        val customer = Customer(reservationId, "A_FIRST_NAME", "A_LAST_NAME")
-        val restaurantName = "A_RESTAURANT_NAME"
+        val reservationDate = A_DATE
+        val customer = Customer(reservationId, A_FIRST_NAME, A_LAST_NAME)
+        val restaurantName = A_RESTAURANT_NAME
 
         reactiveReservationRepository.save(Reservation(reservationId, restaurantName, customer, reservationDate))
                 .toMono().block(Duration.ofMinutes(1))
