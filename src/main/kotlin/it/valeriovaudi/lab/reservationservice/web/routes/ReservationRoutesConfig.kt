@@ -1,22 +1,22 @@
 package it.valeriovaudi.lab.reservationservice.web.routes
 
 import it.valeriovaudi.lab.reservationservice.domain.repository.ReservationRepository
+import it.valeriovaudi.lab.reservationservice.web.representation.ReservationRepresentation
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.reactive.function.server.router
-
-import it.valeriovaudi.lab.reservationservice.web.representation.ReservationRepresentation
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.server.ServerResponse
+import org.springframework.web.reactive.function.server.router
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
 import java.net.URI
 
 @Configuration
-class ReservationRoutes {
+class ReservationRoutesConfig {
 
     @Bean
-    fun reservationRoute(@Value("\${baseServer:http://localhost:8080}") baseServer: String,
+    fun reservationRoutes(@Value("\${baseServer:http://localhost:8080}") baseServer: String,
                           reservationRepository: ReservationRepository) =
             router {
                 POST("/reservation") {
@@ -27,5 +27,10 @@ class ReservationRoutes {
 
                 }
 
+                GET("/reservation/{reservationId}") {
+                    reservationRepository.findOne(it.pathVariable("reservationId")).toMono()
+                            .flatMap { Mono.just(ReservationRepresentation.toRepresentation(it)) }
+                            .flatMap { ok().body(BodyInserters.fromObject(it)) }
+                }
             }
 }

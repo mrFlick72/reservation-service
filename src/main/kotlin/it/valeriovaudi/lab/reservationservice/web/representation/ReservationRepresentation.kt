@@ -12,5 +12,10 @@ data class ReservationRepresentation(var restaurantName: String, var customer: C
                 Reservation(reservationId, reservationRepresentation.restaurantName,
                         Customer(reservationId, reservationRepresentation.customer.firstName, reservationRepresentation.customer.lastName),
                         reservationRepresentation.date)
+
+        fun toRepresentation(reservation: Reservation): ReservationRepresentation =
+                ReservationRepresentation(reservation.restaurantName,
+                        CustomerRepresentation(reservation.customer.firstName, reservation.customer.lastName),
+                        reservation.date)
     }
 }
