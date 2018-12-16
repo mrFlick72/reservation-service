@@ -203,3 +203,7 @@ webflux, reactor and R2DBC can help us to build a fully reactive and no blocking
 
 Only bad notice here is about the maturity of R2DBC. R2DBC unfortunately currentely is not release and Spring Data R2DBC is in SNAPSHOT version but I hope that these projects can 
 reach the maturity soon.
+
+## Refenrence
+* [Spring Data R2DBC GitHub page](https://github.com/spring-projects/spring-data-r2dbc)
+* [R2DBC web site](https://r2dbc.io/)
