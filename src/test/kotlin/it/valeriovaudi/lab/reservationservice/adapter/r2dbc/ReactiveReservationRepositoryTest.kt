@@ -25,8 +25,6 @@ class ReactiveReservationRepositoryTest {
         @JvmField
         val container: DockerComposeContainer<*> = DockerComposeContainer<Nothing>(File("src/test/resources/docker-compose.yml"))
                 .withExposedService("postgres", 5432)
-
-
     }
 
     private val A_DATE = LocalDateTime.of(2018, 1, 1, 22, 0)
