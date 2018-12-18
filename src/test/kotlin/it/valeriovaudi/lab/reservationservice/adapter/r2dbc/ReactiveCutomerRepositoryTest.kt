@@ -1,41 +1,17 @@
 package it.valeriovaudi.lab.reservationservice.adapter.r2dbc
 
-import io.r2dbc.client.R2dbc
-import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
-import io.r2dbc.postgresql.PostgresqlConnectionFactory
 import it.valeriovaudi.lab.reservationservice.domain.model.Customer
 import junit.framework.Assert.assertNotNull
 import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Assert.assertNull
-import org.junit.Before
 import org.junit.Test
-import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
 import java.time.Duration
 import java.util.*
 
-class ReactiveCutomerRepositoryTest {
-
-    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
-    lateinit var databaseClient: TransactionalDatabaseClient
-    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository
-    lateinit var r2dbc: R2dbc
-
-    @Before
-    fun setUp() {
-        postgresqlConnectionFactory = PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
-                .host("localhost")
-                .database("reservation")
-                .username("root")
-                .password("root")
-                .build())
-
-        r2dbc = R2dbc(postgresqlConnectionFactory)
-        databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
-        reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
-    }
+class ReactiveCutomerRepositoryTest : AbstractRepositoryTestRunner()  {
 
     @Test
     fun `save a customer not allowed tx rolbaked`() {
