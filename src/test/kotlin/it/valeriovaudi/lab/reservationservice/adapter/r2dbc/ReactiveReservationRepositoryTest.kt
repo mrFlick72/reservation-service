@@ -1,21 +1,33 @@
 package it.valeriovaudi.lab.reservationservice.adapter.r2dbc
 
+import io.r2dbc.client.Handle
 import io.r2dbc.client.R2dbc
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
 import it.valeriovaudi.lab.reservationservice.domain.model.Customer
 import it.valeriovaudi.lab.reservationservice.domain.model.Reservation
 import org.hamcrest.core.Is
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import org.junit.*
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
+import org.testcontainers.containers.DockerComposeContainer
+import org.testcontainers.shaded.com.google.common.io.Files
 import reactor.core.publisher.toMono
+import java.io.File
+import java.nio.charset.Charset
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
 class ReactiveReservationRepositoryTest {
+
+    companion object {
+        @ClassRule
+        @JvmField
+        val container: DockerComposeContainer<*> = DockerComposeContainer<Nothing>(File("src/test/resources/docker-compose.yml"))
+                .withExposedService("postgres", 5432)
+
+
+    }
 
     private val A_DATE = LocalDateTime.of(2018, 1, 1, 22, 0)
     private val A_RESTAURANT_NAME = "A_RESTAURANT_NAME"
@@ -30,8 +42,10 @@ class ReactiveReservationRepositoryTest {
 
     @Before
     fun setUp() {
+        val serviceHost = container.getServiceHost("postgres", 5432)
+        println("serviceHost $serviceHost")
         postgresqlConnectionFactory = PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
-                .host("localhost")
+                .host(serviceHost)
                 .database("reservation")
                 .username("root")
                 .password("root")
@@ -41,7 +55,16 @@ class ReactiveReservationRepositoryTest {
         reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
         reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCutomerRepository)
 
+        val schemaQuery = Files.readLines(File("src/test/resources/schema.sql"), Charset.defaultCharset()).joinToString("")
         r2dbc = R2dbc(postgresqlConnectionFactory)
+        r2dbc.withHandle { t: Handle ->
+            t.execute(schemaQuery)
+        }.toMono().block(Duration.ofMinutes(1))
+    }
+
+    @After
+    fun tearDown() {
+        container.stop()
     }
 
     @Test
