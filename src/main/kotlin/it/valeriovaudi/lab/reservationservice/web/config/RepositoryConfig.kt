@@ -16,7 +16,7 @@ import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 class RepositoryConfig {
 
     @Bean
-    fun postgresqlConnectionFactory(r2dbcCongfig: R2dbcCongfig) =
+    fun postgresqlConnectionFactory(r2dbcCongfig: R2dbcCongfig): PostgresqlConnectionFactory =
             PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
                     .host(r2dbcCongfig.host)
                     .database(r2dbcCongfig.database)
