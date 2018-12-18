@@ -1,6 +1,5 @@
 package it.valeriovaudi.lab.reservationservice.adapter.r2dbc
 
-import io.r2dbc.client.Handle
 import io.r2dbc.client.R2dbc
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
@@ -10,10 +9,8 @@ import org.hamcrest.core.Is
 import org.junit.*
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 import org.testcontainers.containers.DockerComposeContainer
-import org.testcontainers.shaded.com.google.common.io.Files
 import reactor.core.publisher.toMono
 import java.io.File
-import java.nio.charset.Charset
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
@@ -53,11 +50,7 @@ class ReactiveReservationRepositoryTest {
         reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
         reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCutomerRepository)
 
-        val schemaQuery = Files.readLines(File("src/test/resources/schema.sql"), Charset.defaultCharset()).joinToString("")
         r2dbc = R2dbc(postgresqlConnectionFactory)
-        r2dbc.withHandle { t: Handle ->
-            t.execute(schemaQuery)
-        }.toMono().block(Duration.ofMinutes(1))
     }
 
     @After
