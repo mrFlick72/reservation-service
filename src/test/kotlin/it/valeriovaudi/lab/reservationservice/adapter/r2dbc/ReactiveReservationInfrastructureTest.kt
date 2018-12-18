@@ -23,12 +23,6 @@ class ReactiveReservationInfrastructureTest  {
         val container: DockerComposeContainer<*> = DockerComposeContainer<Nothing>(File("src/test/resources/docker-compose.yml"))
                 .withExposedService("postgres_1", 5432)
 
-
-        @AfterClass
-        fun tearDown() {
-            container.stop()
-        }
-
     }
     @Before
     fun setUp() {

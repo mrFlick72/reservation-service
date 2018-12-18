@@ -39,18 +39,11 @@ import java.util.*
 @RunWith(SpringRunner::class)
 class ReservationRepresentationRoutesTest  {
 
-
     companion object {
         @ClassRule
         @JvmField
         val container: DockerComposeContainer<*> = DockerComposeContainer<Nothing>(File("src/test/resources/docker-compose.yml"))
                 .withExposedService("postgres_1", 5432)
-
-
-        @AfterClass
-        fun tearDown() {
-            container.stop()
-        }
 
     }
 

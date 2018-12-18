@@ -24,13 +24,8 @@ class ReactiveCutomerInfrastructureTest   {
         val container: DockerComposeContainer<*> = DockerComposeContainer<Nothing>(File("src/test/resources/docker-compose.yml"))
                 .withExposedService("postgres_1", 5432)
 
-
-        @AfterClass
-        fun tearDown() {
-            container.stop()
-        }
-
     }
+
     @Before
     fun setUp() {
         val serviceHost = container.getServiceHost("postgres_1", 5432)
