@@ -3,9 +3,8 @@ package it.valeriovaudi.lab.reservationservice.web.config
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
 import io.r2dbc.spi.ConnectionFactory
-import it.valeriovaudi.lab.reservationservice.adapter.r2dbc.ReactiveCutomerRepository
+import it.valeriovaudi.lab.reservationservice.adapter.r2dbc.ReactiveCustomerRepository
 import it.valeriovaudi.lab.reservationservice.adapter.r2dbc.ReactiveReservationRepository
-import it.valeriovaudi.lab.reservationservice.domain.repository.ReservationRepository
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -31,12 +30,12 @@ class RepositoryConfig {
 
     @Bean
     fun reactiveCutomerRepository(databaseClient: TransactionalDatabaseClient) =
-            ReactiveCutomerRepository(databaseClient)
+            ReactiveCustomerRepository(databaseClient)
 
     @Bean
     fun reactiveReservationRepository(databaseClient: TransactionalDatabaseClient,
-                                      reactiveCutomerRepository: ReactiveCutomerRepository) =
-            ReactiveReservationRepository(databaseClient, reactiveCutomerRepository)
+                                      reactiveCustomerRepository: ReactiveCustomerRepository) =
+            ReactiveReservationRepository(databaseClient, reactiveCustomerRepository)
 
 
 }

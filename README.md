@@ -113,25 +113,34 @@ The test class in this case involve a local database Postgress in this case.
  The sample code appear like below: 
  
 ```kotlin
-class ReactiveCutomerRepositoryTest {
+class ReactiveCustomerRepositoryTest {
 
-    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
-    lateinit var databaseClient: TransactionalDatabaseClient
-    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository
-    lateinit var R2DBC: R2DBC
+    companion object {
+        @ClassRule
+        @JvmField
+        val container: DockerComposeContainer<*> = DockerComposeContainer<Nothing>(File("src/test/resources/docker-compose.yml"))
+                .withExposedService("postgres_1", 5432)
+
+    }
 
     @Before
     fun setUp() {
+        val serviceHost = container.getServiceHost("postgres_1", 5432)
+        val servicePort = container.getServicePort("postgres_1", 5432)
+
         postgresqlConnectionFactory = PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
-                .host("localhost")
+                .host(serviceHost)
+                .port(servicePort)
                 .database("reservation")
                 .username("root")
                 .password("root")
                 .build())
 
-        R2DBC = R2DBC(postgresqlConnectionFactory)
         databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
-        reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
+        reactiveCustomerRepository = ReactiveCustomerRepository(databaseClient)
+        reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCustomerRepository)
+
+        r2dbc = R2dbc(postgresqlConnectionFactory)
     }
 
     @Test
@@ -145,9 +154,9 @@ class ReactiveCutomerRepositoryTest {
         val thirdCustomer = newCustomer(prefix = "rolback", suffix = "3")
         try {
             databaseClient.inTransaction {
-                reactiveCutomerRepository.save(firstReservationId, firstCustomer)
-                        .then(reactiveCutomerRepository.save(secondReservationId, secondCustomer))
-                        .then(reactiveCutomerRepository.save(thirdReservationId, thirdCustomer))
+                reactiveCustomerRepository.save(firstReservationId, firstCustomer)
+                        .then(reactiveCustomerRepository.save(secondReservationId, secondCustomer))
+                        .then(reactiveCustomerRepository.save(thirdReservationId, thirdCustomer))
 
                         .then(Mono.error<RuntimeException>({ RuntimeException() }))
 
@@ -175,9 +184,9 @@ class ReactiveCutomerRepositoryTest {
 
 
         databaseClient.inTransaction {
-            reactiveCutomerRepository.save(firstReservationId, firstCustomer)
-                    .then(reactiveCutomerRepository.save(secondReservationId, secondCustomer))
-                    .then(reactiveCutomerRepository.save(thirdReservationId, thirdCustomer))
+            reactiveCustomerRepository.save(firstReservationId, firstCustomer)
+                    .then(reactiveCustomerRepository.save(secondReservationId, secondCustomer))
+                    .then(reactiveCustomerRepository.save(thirdReservationId, thirdCustomer))
                     .then()
         }.toMono().block(Duration.ofMinutes(1))
 

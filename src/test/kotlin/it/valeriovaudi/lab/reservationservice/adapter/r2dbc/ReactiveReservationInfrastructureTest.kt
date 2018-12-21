@@ -38,8 +38,8 @@ class ReactiveReservationInfrastructureTest  {
                 .build())
 
         databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
-        reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
-        reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCutomerRepository)
+        reactiveCustomerRepository = ReactiveCustomerRepository(databaseClient)
+        reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCustomerRepository)
 
         r2dbc = R2dbc(postgresqlConnectionFactory)
     }
@@ -47,7 +47,7 @@ class ReactiveReservationInfrastructureTest  {
     lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
     lateinit var databaseClient: TransactionalDatabaseClient
     lateinit var reactiveReservationRepository: ReactiveReservationRepository
-    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository
+    lateinit var reactiveCustomerRepository: ReactiveCustomerRepository
     lateinit var r2dbc: R2dbc
 
     private val A_DATE = LocalDateTime.of(2018, 1, 1, 22, 0)

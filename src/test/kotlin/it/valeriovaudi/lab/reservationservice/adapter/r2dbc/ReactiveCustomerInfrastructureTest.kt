@@ -4,7 +4,6 @@ import io.r2dbc.client.R2dbc
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
 import it.valeriovaudi.lab.reservationservice.domain.model.Customer
-import junit.framework.Assert.assertNotNull
 import org.hamcrest.core.Is
 import org.junit.*
 import org.junit.Assert.assertNull
@@ -16,7 +15,7 @@ import java.io.File
 import java.time.Duration
 import java.util.*
 
-class ReactiveCutomerInfrastructureTest   {
+class ReactiveCustomerInfrastructureTest   {
 
     companion object {
         @ClassRule
@@ -40,8 +39,8 @@ class ReactiveCutomerInfrastructureTest   {
                 .build())
 
         databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
-        reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
-        reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCutomerRepository)
+        reactiveCustomerRepository = ReactiveCustomerRepository(databaseClient)
+        reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCustomerRepository)
 
         r2dbc = R2dbc(postgresqlConnectionFactory)
     }
@@ -49,7 +48,7 @@ class ReactiveCutomerInfrastructureTest   {
     lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
     lateinit var databaseClient: TransactionalDatabaseClient
     lateinit var reactiveReservationRepository: ReactiveReservationRepository
-    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository
+    lateinit var reactiveCustomerRepository: ReactiveCustomerRepository
     lateinit var r2dbc: R2dbc
 
     @Test
@@ -63,9 +62,9 @@ class ReactiveCutomerInfrastructureTest   {
         val thirdCustomer = newCustomer(prefix = "rolback", suffix = "3")
         try {
             databaseClient.inTransaction {
-                reactiveCutomerRepository.save(firstReservationId, firstCustomer)
-                        .then(reactiveCutomerRepository.save(secondReservationId, secondCustomer))
-                        .then(reactiveCutomerRepository.save(thirdReservationId, thirdCustomer))
+                reactiveCustomerRepository.save(firstReservationId, firstCustomer)
+                        .then(reactiveCustomerRepository.save(secondReservationId, secondCustomer))
+                        .then(reactiveCustomerRepository.save(thirdReservationId, thirdCustomer))
 
                         .then(Mono.error<RuntimeException>({ RuntimeException() }))
 
@@ -93,9 +92,9 @@ class ReactiveCutomerInfrastructureTest   {
 
 
         databaseClient.inTransaction {
-            reactiveCutomerRepository.save(firstReservationId, firstCustomer)
-                    .then(reactiveCutomerRepository.save(secondReservationId, secondCustomer))
-                    .then(reactiveCutomerRepository.save(thirdReservationId, thirdCustomer))
+            reactiveCustomerRepository.save(firstReservationId, firstCustomer)
+                    .then(reactiveCustomerRepository.save(secondReservationId, secondCustomer))
+                    .then(reactiveCustomerRepository.save(thirdReservationId, thirdCustomer))
                     .then()
         }.toMono().block(Duration.ofMinutes(1))
 
@@ -116,22 +115,22 @@ class ReactiveCutomerInfrastructureTest   {
 
 
         databaseClient.inTransaction {
-            reactiveCutomerRepository.save(firstReservationId, firstCustomer)
-                    .then(reactiveCutomerRepository.save(secondReservationId, secondCustomer))
-                    .then(reactiveCutomerRepository.save(thirdReservationId, thirdCustomer))
+            reactiveCustomerRepository.save(firstReservationId, firstCustomer)
+                    .then(reactiveCustomerRepository.save(secondReservationId, secondCustomer))
+                    .then(reactiveCustomerRepository.save(thirdReservationId, thirdCustomer))
                     .then()
         }.toMono().block(Duration.ofMinutes(1))
 
-        val customer = reactiveCutomerRepository.find(firstReservationId).block(Duration.ofMinutes(1))
+        val customer = reactiveCustomerRepository.find(firstReservationId).block(Duration.ofMinutes(1))
         println(customer)
-        assertNotNull(customer)
+        Assert.assertNotNull(customer)
         Assert.assertThat(customer, Is.`is`(firstCustomer))
     }
 
     @Test
     fun `retrieve a no existing customer`() {
         val reservationId = UUID.randomUUID().toString()
-        val customer = reactiveCutomerRepository.find(reservationId).block()
+        val customer = reactiveCustomerRepository.find(reservationId).block()
         println(customer)
         assertNull(customer)
     }
@@ -141,10 +140,10 @@ class ReactiveCutomerInfrastructureTest   {
         val reservationId = UUID.randomUUID().toString()
         val firstCustomer = newCustomer(prefix = "save", suffix = "1")
 
-        reactiveCutomerRepository.save(reservationId, firstCustomer).toMono().block(Duration.ofMinutes(1))
-        reactiveCutomerRepository.delete(reservationId).toMono().block(Duration.ofMinutes(1))
+        reactiveCustomerRepository.save(reservationId, firstCustomer).toMono().block(Duration.ofMinutes(1))
+        reactiveCustomerRepository.delete(reservationId).toMono().block(Duration.ofMinutes(1))
 
-        val customer = reactiveCutomerRepository.find(reservationId).block()
+        val customer = reactiveCustomerRepository.find(reservationId).block()
         println(customer)
         assertNull(customer)
     }
