@@ -304,7 +304,7 @@ style is cool but in some use case a little bit a over kill, the true way to do 
 team knowledge, load use case, scaling motivation and so on. In any case if the load is excpeted to increase and the resources usage is an important matter 
 webflux, reactor and R2DBC can help us to build a fully reactive and no blocking io pipeline.
 
-Only bad notice here is about the maturity of R2DBC. R2DBC unfortunately currentely is not release and Spring Data R2DBC is in SNAPSHOT version but I hope that these projects can 
+Only bad notice here is about the maturity of R2DBC. R2DBC unfortunately currently is not release and Spring Data R2DBC is in MILESTON version but I hope that these projects can 
 reach the maturity soon.
 
 ## Refenrence
