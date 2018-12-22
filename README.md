@@ -200,6 +200,24 @@ class ReactiveCustomerRepositoryTest {
           
 ```
 
+docker-compose:
+
+```yaml
+
+version: "2"
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: reservation
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      
+```
 
 ## Conclusion
 
@@ -216,3 +234,4 @@ reach the maturity soon.
 ## Refenrence
 * [Spring Data R2DBC GitHub page](https://github.com/spring-projects/spring-data-r2dbc)
 * [R2DBC web site](https://r2dbc.io/)
+* [Testcontainers web site](https://www.testcontainers.org/)
