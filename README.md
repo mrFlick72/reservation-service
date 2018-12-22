@@ -19,16 +19,16 @@ Some framework like RXJava2, Reactror, Akka Stream and many other embrace reacti
 compose software pieces.
 
 ## The evil: JDBC
-Unfortunately JDBC do not embrace the no blocking and reactive programming paradigm. This is a very big problem for use relation database in a reactive noblocking pipeline.
-Some projects like rxjava-jdbc, ADBA, R2DBC an lo on attempt to solve the problem of the bloking nature of JDBC. In this sample I how use show R2DBC in a full reactive no blocking io pipeline 
+Unfortunately JDBC do not embrace the no-blocking and reactive programming paradigm. This is a very big problem for use relation database in a reactive no-blocking pipeline.
+Some projects like rxjava-jdbc, ADBA, R2DBC an so on, try to solve the problem of the blocking nature of JDBC. In this sample I show how to use R2DBC in a full reactive no-blocking io pipeline 
 starting from the web layer(Spring WebFlux) to database.
 
 ## The stack of the sample
 
 In this project I have used Spring Boot 2.1.1 with Kotlin as programming language, Spring WebFlux on the web layer and R2DBC on persistence layer, Postgres as database in a Hexagonal architecture.
-In particular for the persistence I have experimented the newest Spring Data R2DBC a very elegant api that especially for the transactional management provides a very elegant and clean api. 
+In particular for the persistence I have experimented the newest Spring Data R2DBC, that thanks to a very elegant api, especially for the transactional management, provides a very elegant and clean api. 
 Note in this example that tanks to the databaseClient of type TransactionalDatabaseClient and Spring Data R2DBC we can span the transaction 
-across more repository without annotation in a more explicit way.
+across more repository in a more explicit way without annotation.
 #### configuration
 ```kotlin
 @Configuration
