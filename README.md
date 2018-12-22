@@ -107,11 +107,15 @@ class ReservationRoutesConfig {
           
 ```
 ## Testing
-The test class in this case involve a local database Postgress in this case.
- I do not provide H2 because I think that especially with native query because I think that in this case is very important to use the real database engine 
- that we will use in production of course tanks projects like TestContainers we can start a postgress database for our test and test our code against a real database. 
- The sample code appear like below: 
- 
+The test class involve a local database Postgress, I do not provide H2 because 
+I think that especially with native query it is very important to use the real database engine that we will use in production, 
+of course tanks projects like TestContainers we can start a postgress database for our tests and test our code against a real database, 
+the only problem here is the test speed. Unfortunately use testcontainers involve to download the immage, start a container and it can be time consuming.
+The my strategy involve the usage on a docker compose because i feel it more confortable and configure the my test infrastructure can be more simple that 
+configure by code the JUnit ClassRule. 
+\
+ **The sample code appear like below:** 
+ \
 ```kotlin
 class ReactiveCustomerRepositoryTest {
 
@@ -125,7 +129,12 @@ class ReactiveCustomerRepositoryTest {
 
     @Before
     fun setUp() {
-        val serviceHost = container.getServiceHost("postgres_1", 5432)
+        /**
+             * I prefer do not use docker port redirect in order to prevents the port conflicts on container start,
+             * imaging it on a concurrent test suite, the code below is necessary in order to get the host and port
+             * that the docker runtime assign to the container
+         * */
+        val serviceHost = container.getServiceHost("postgres_1", 5432) 
         val servicePort = container.getServicePort("postgres_1", 5432)
 
         postgresqlConnectionFactory = PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
@@ -199,11 +208,78 @@ class ReactiveCustomerRepositoryTest {
 }
           
 ```
+\
+**configuration of integration test:**
+\
 
-docker-compose:
+```kotlin
+@DirtiesContext
+@Import(RepoConfig::class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@RunWith(SpringRunner::class)
+class ReservationRepresentationRoutesTest  {
+
+    companion object {
+        @ClassRule
+        @JvmField
+        val container: DockerComposeContainer<*> = DockerComposeContainer<Nothing>(File("src/test/resources/docker-compose.yml"))
+                .withExposedService("postgres_1", 5432)
+
+    }
+
+    @Autowired
+    private lateinit var webClient: WebTestClient
+
+    @Autowired
+    private lateinit var reactiveReservationRepository: ReactiveReservationRepository
+
+    private val A_RESTAURANT_NAME = "A_RESTAURANT_NAME"
+    private val FIRST_NAME = "FIRST_NAME"
+    private val LAST_NAME = "LAST_NAME"
+    private val A_DATE = LocalDateTime.of(2018, 1, 1, 10, 10)
+
+    @Test
+    fun `book a new reservation`() {
+        val location = this.webClient.post()
+                .uri("/reservation")
+                .body(BodyInserters.fromObject(ReservationRepresentation(restaurantName = A_RESTAURANT_NAME,
+                        customer = CustomerRepresentation(FIRST_NAME, LAST_NAME),
+                        date = A_DATE)))
+                .exchange()
+                .expectStatus().isCreated
+                .returnResult<Any>().responseHeaders.location
+
+        println(location!!.extractId())
+        Assert.assertNotNull(location.extractId())
+    }
+
+  ....
+}
+
+@Configuration
+class RepoConfig {
+
+    /**
+     * I prefer do not use docker port redirect in order to prevents the port conflicts on container start,
+     * imaging it on a concurrent test suite, the code below is necessary in order to get the host and port
+     * that the docker runtime assign to the container
+     * */
+    @Bean
+    @Primary // I force the usage of this bean instead of production bean in order to force the usage of postgress container for test case 
+    fun connectionFactory(): PostgresqlConnectionFactory  =
+            PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
+                    .host(ReservationRepresentationRoutesTest.container.getServiceHost("postgres_1", 5432))
+                    .port(ReservationRepresentationRoutesTest.container.getServicePort("postgres_1", 5432))
+                    .database("reservation")
+                    .username("root")
+                    .password("root")
+                    .build())
+}
+```
+
+**docker-compose:**
 
 ```yaml
-
 version: "2"
 
 services:

@@ -128,8 +128,13 @@ class ReservationRepresentationRoutesTest  {
 @Configuration
 class RepoConfig {
 
+    /**
+     * I prefer do not use docker port redirect in order to prevents the port conflicts on container start,
+     * imaging it on a concurrent test suite, the code below is necessary in order to get the host and port
+     * that the docker runtime assign to the container
+     * */
     @Bean
-    @Primary
+    @Primary // I force the usage of this bean instead of production bean in order to force the usage of postgress container for test case
     fun connectionFactory(): PostgresqlConnectionFactory  =
             PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
                     .host(ReservationRepresentationRoutesTest.container.getServiceHost("postgres_1", 5432))

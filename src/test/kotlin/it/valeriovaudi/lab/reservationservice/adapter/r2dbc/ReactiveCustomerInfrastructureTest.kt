@@ -27,6 +27,11 @@ class ReactiveCustomerInfrastructureTest   {
 
     @Before
     fun setUp() {
+        /**
+         * I prefer do not use docker port redirect in order to prevents the port conflicts on container start,
+         * imaging it on a concurrent test suite, the code below is necessary in order to get the host and port
+         * that the docker runtime assign to the container
+         * */
         val serviceHost = container.getServiceHost("postgres_1", 5432)
         val servicePort = container.getServicePort("postgres_1", 5432)
 
