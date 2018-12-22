@@ -6,43 +6,59 @@ import io.r2dbc.postgresql.PostgresqlConnectionFactory
 import it.valeriovaudi.lab.reservationservice.domain.model.Customer
 import it.valeriovaudi.lab.reservationservice.domain.model.Reservation
 import org.hamcrest.core.Is
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import org.junit.*
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
+import org.testcontainers.containers.DockerComposeContainer
 import reactor.core.publisher.toMono
+import java.io.File
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
-class ReactiveReservationRepositoryTest {
+class ReactiveReservationInfrastructureTest  {
 
-    private val A_DATE = LocalDateTime.of(2018, 1, 1, 22, 0)
-    private val A_RESTAURANT_NAME = "A_RESTAURANT_NAME"
-    private val A_FIRST_NAME = "A_FIRST_NAME"
-    private val A_LAST_NAME = "A_LAST_NAME"
+    companion object {
+        @ClassRule
+        @JvmField
+        val container: DockerComposeContainer<*> = DockerComposeContainer<Nothing>(File("src/test/resources/docker-compose.yml"))
+                .withExposedService("postgres_1", 5432)
 
-    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
-    lateinit var databaseClient: TransactionalDatabaseClient
-    lateinit var reactiveReservationRepository: ReactiveReservationRepository
-    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository
-    lateinit var r2dbc: R2dbc
-
+    }
     @Before
     fun setUp() {
+        /**
+         * I prefer do not use docker port redirect in order to prevents the port conflicts on container start,
+         * imaging it on a concurrent test suite, the code below is necessary in order to get the host and port
+         * that the docker runtime assign to the container
+         * */
+        val serviceHost = container.getServiceHost("postgres_1", 5432)
+        val servicePort = container.getServicePort("postgres_1", 5432)
+
         postgresqlConnectionFactory = PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
-                .host("localhost")
+                .host(serviceHost)
+                .port(servicePort)
                 .database("reservation")
                 .username("root")
                 .password("root")
                 .build())
 
         databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
-        reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
-        reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCutomerRepository)
+        reactiveCustomerRepository = ReactiveCustomerRepository(databaseClient)
+        reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCustomerRepository)
 
         r2dbc = R2dbc(postgresqlConnectionFactory)
     }
+
+    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
+    lateinit var databaseClient: TransactionalDatabaseClient
+    lateinit var reactiveReservationRepository: ReactiveReservationRepository
+    lateinit var reactiveCustomerRepository: ReactiveCustomerRepository
+    lateinit var r2dbc: R2dbc
+
+    private val A_DATE = LocalDateTime.of(2018, 1, 1, 22, 0)
+    private val A_RESTAURANT_NAME = "A_RESTAURANT_NAME"
+    private val A_FIRST_NAME = "A_FIRST_NAME"
+    private val A_LAST_NAME = "A_LAST_NAME"
 
     @Test
     fun `make a new reservation`() {

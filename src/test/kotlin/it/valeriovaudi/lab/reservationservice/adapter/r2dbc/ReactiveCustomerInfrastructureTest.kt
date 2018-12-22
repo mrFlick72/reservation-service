@@ -4,38 +4,57 @@ import io.r2dbc.client.R2dbc
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration
 import io.r2dbc.postgresql.PostgresqlConnectionFactory
 import it.valeriovaudi.lab.reservationservice.domain.model.Customer
-import junit.framework.Assert.assertNotNull
 import org.hamcrest.core.Is
-import org.junit.Assert
+import org.junit.*
 import org.junit.Assert.assertNull
-import org.junit.Before
-import org.junit.Test
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
+import org.testcontainers.containers.DockerComposeContainer
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
+import java.io.File
 import java.time.Duration
 import java.util.*
 
-class ReactiveCutomerRepositoryTest {
+class ReactiveCustomerInfrastructureTest   {
 
-    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
-    lateinit var databaseClient: TransactionalDatabaseClient
-    lateinit var reactiveCutomerRepository: ReactiveCutomerRepository
-    lateinit var r2dbc: R2dbc
+    companion object {
+        @ClassRule
+        @JvmField
+        val container: DockerComposeContainer<*> = DockerComposeContainer<Nothing>(File("src/test/resources/docker-compose.yml"))
+                .withExposedService("postgres_1", 5432)
+
+    }
 
     @Before
     fun setUp() {
+        /**
+         * I prefer do not use docker port redirect in order to prevents the port conflicts on container start,
+         * imaging it on a concurrent test suite, the code below is necessary in order to get the host and port
+         * that the docker runtime assign to the container
+         * */
+        val serviceHost = container.getServiceHost("postgres_1", 5432)
+        val servicePort = container.getServicePort("postgres_1", 5432)
+
         postgresqlConnectionFactory = PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
-                .host("localhost")
+                .host(serviceHost)
+                .port(servicePort)
                 .database("reservation")
                 .username("root")
                 .password("root")
                 .build())
 
-        r2dbc = R2dbc(postgresqlConnectionFactory)
         databaseClient = TransactionalDatabaseClient.create(postgresqlConnectionFactory)
-        reactiveCutomerRepository = ReactiveCutomerRepository(databaseClient)
+        reactiveCustomerRepository = ReactiveCustomerRepository(databaseClient)
+        reactiveReservationRepository = ReactiveReservationRepository(databaseClient, reactiveCustomerRepository)
+
+        r2dbc = R2dbc(postgresqlConnectionFactory)
     }
+
+    lateinit var postgresqlConnectionFactory: PostgresqlConnectionFactory
+    lateinit var databaseClient: TransactionalDatabaseClient
+    lateinit var reactiveReservationRepository: ReactiveReservationRepository
+    lateinit var reactiveCustomerRepository: ReactiveCustomerRepository
+    lateinit var r2dbc: R2dbc
 
     @Test
     fun `save a customer not allowed tx rolbaked`() {
@@ -48,9 +67,9 @@ class ReactiveCutomerRepositoryTest {
         val thirdCustomer = newCustomer(prefix = "rolback", suffix = "3")
         try {
             databaseClient.inTransaction {
-                reactiveCutomerRepository.save(firstReservationId, firstCustomer)
-                        .then(reactiveCutomerRepository.save(secondReservationId, secondCustomer))
-                        .then(reactiveCutomerRepository.save(thirdReservationId, thirdCustomer))
+                reactiveCustomerRepository.save(firstReservationId, firstCustomer)
+                        .then(reactiveCustomerRepository.save(secondReservationId, secondCustomer))
+                        .then(reactiveCustomerRepository.save(thirdReservationId, thirdCustomer))
 
                         .then(Mono.error<RuntimeException>({ RuntimeException() }))
 
@@ -78,9 +97,9 @@ class ReactiveCutomerRepositoryTest {
 
 
         databaseClient.inTransaction {
-            reactiveCutomerRepository.save(firstReservationId, firstCustomer)
-                    .then(reactiveCutomerRepository.save(secondReservationId, secondCustomer))
-                    .then(reactiveCutomerRepository.save(thirdReservationId, thirdCustomer))
+            reactiveCustomerRepository.save(firstReservationId, firstCustomer)
+                    .then(reactiveCustomerRepository.save(secondReservationId, secondCustomer))
+                    .then(reactiveCustomerRepository.save(thirdReservationId, thirdCustomer))
                     .then()
         }.toMono().block(Duration.ofMinutes(1))
 
@@ -101,22 +120,22 @@ class ReactiveCutomerRepositoryTest {
 
 
         databaseClient.inTransaction {
-            reactiveCutomerRepository.save(firstReservationId, firstCustomer)
-                    .then(reactiveCutomerRepository.save(secondReservationId, secondCustomer))
-                    .then(reactiveCutomerRepository.save(thirdReservationId, thirdCustomer))
+            reactiveCustomerRepository.save(firstReservationId, firstCustomer)
+                    .then(reactiveCustomerRepository.save(secondReservationId, secondCustomer))
+                    .then(reactiveCustomerRepository.save(thirdReservationId, thirdCustomer))
                     .then()
         }.toMono().block(Duration.ofMinutes(1))
 
-        val customer = reactiveCutomerRepository.find(firstReservationId).block(Duration.ofMinutes(1))
+        val customer = reactiveCustomerRepository.find(firstReservationId).block(Duration.ofMinutes(1))
         println(customer)
-        assertNotNull(customer)
+        Assert.assertNotNull(customer)
         Assert.assertThat(customer, Is.`is`(firstCustomer))
     }
 
     @Test
     fun `retrieve a no existing customer`() {
         val reservationId = UUID.randomUUID().toString()
-        val customer = reactiveCutomerRepository.find(reservationId).block()
+        val customer = reactiveCustomerRepository.find(reservationId).block()
         println(customer)
         assertNull(customer)
     }
@@ -126,10 +145,10 @@ class ReactiveCutomerRepositoryTest {
         val reservationId = UUID.randomUUID().toString()
         val firstCustomer = newCustomer(prefix = "save", suffix = "1")
 
-        reactiveCutomerRepository.save(reservationId, firstCustomer).toMono().block(Duration.ofMinutes(1))
-        reactiveCutomerRepository.delete(reservationId).toMono().block(Duration.ofMinutes(1))
+        reactiveCustomerRepository.save(reservationId, firstCustomer).toMono().block(Duration.ofMinutes(1))
+        reactiveCustomerRepository.delete(reservationId).toMono().block(Duration.ofMinutes(1))
 
-        val customer = reactiveCutomerRepository.find(reservationId).block()
+        val customer = reactiveCustomerRepository.find(reservationId).block()
         println(customer)
         assertNull(customer)
     }

@@ -6,7 +6,7 @@ import org.reactivestreams.Publisher
 import org.springframework.data.r2dbc.function.TransactionalDatabaseClient
 import reactor.core.publisher.Mono
 
-class ReactiveCutomerRepository(private val databaseClient: TransactionalDatabaseClient) : CustomerRepository {
+class ReactiveCustomerRepository(private val databaseClient: TransactionalDatabaseClient) : CustomerRepository {
 
     override fun save(reservationId: String, customer: Customer) =
             databaseClient.execute().sql("INSERT INTO customer (reservation_id, first_name, last_name) VALUES ($1, $2, $3)")
