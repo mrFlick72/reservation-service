@@ -113,9 +113,9 @@ of course tanks projects like TestContainers we can start a postgress database f
 the only problem here is the test speed. Unfortunately use testcontainers involve to download the immage, start a container and it can be time consuming.
 The my strategy involve the usage on a docker compose because i feel it more confortable and configure the my test infrastructure can be more simple that 
 configure by code the JUnit ClassRule. 
-\
+
  **The sample code appear like below:** 
- \
+ 
 ```kotlin
 class ReactiveCustomerRepositoryTest {
 
@@ -208,9 +208,9 @@ class ReactiveCustomerRepositoryTest {
 }
           
 ```
-\
+
 **configuration of integration test:**
-\
+
 
 ```kotlin
 @DirtiesContext
