@@ -1,5 +1,7 @@
 FROM openjdk:11
-COPY target/reservation-service.jar /usr/reservation-service
-WORKDIR /usr/src/reservation-service
 
-ENTRYPOINT ["java", "jar", "reservation-service.jar"]
+WORKDIR /usr/local/reservation-service/
+
+COPY target/reservation-service.jar reservation-service.jar
+
+CMD ["java", "-Xms512m", "-Xmx1g", "-jar", "reservation-service.jar"]
